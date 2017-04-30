@@ -1,9 +1,9 @@
 import ast 
 
-num_lines = sum(1 for line in open('sample2.py'))
+num_lines = sum(1 for line in open('sample.py'))
 #print num_lines
 
-content = open("sample2.py").read()
+content = open("sample.py").read()
 tree = ast.parse(content)
 
 # for node in ast.walk(tree):
@@ -41,47 +41,57 @@ for key in var_info:
 	analysis = {}	
 	if "Param" not in line_info:
 		i = 0
-		while i < len(line_info):
-			if i < len(line_info) and line_info[i] == "Store":
-				analysis[str(i+1)] = "Live, written to"
-				temp_load = 0
-				i=i+1
-				#print str(i) + "store"
-				while i < len(line_info) and line_info[i] != "Store":
-					if i < len(line_info) and line_info[i] == "Load":
-						analysis[str(i+1)] = "Live, read"
-						temp_load = i+1
-						i=i+1
-						#print str(i) + "load in store"
-					if i < len(line_info) and line_info[i] == "Not Present":
-						analysis[str(i+1)] = "Live"
-						i=i+1
-						#print str(i) + "nil in store"
-				if temp_load < i:
-					for index in range(temp_load, i):
-						analysis[str(index+1)] = "Not Live"
-			if i < len(line_info) and line_info[i] == "Not Present":
-				analysis[str(i+1)] = "Not Live"
-				i=i+1
-				#print str(i) + "Nil"
-			if i < len(line_info) and line_info[i] == "Load":
-				analysis[str(i+1)] = "Live, read"
-				temp_load = i+1
-				i=i+1
-				#print str(i) + "load"
-				while i < len(line_info) and line_info[i] != "Store":
-					if i < len(line_info) and line_info[i] == "Load":
-						analysis[str(i+1)] = "Live, read"
-						temp_load = i+1
-						i=i+1
-						#print str(i) + "load in load"
-					if i < len(line_info) and line_info[i] == "Not Present":
-						analysis[str(i+1)] = "Live"
-						i=i+1
-						#print str(i) + "nil in load"
-				if temp_load < i:
-					for index in range(temp_load, i):
-						analysis[str(index+1)] = "Not Live"
+	else:
+		i = line_info.index("Param")
+		for x in range(1,i+1):
+			analysis[str(x)] = "Not Live"
+		analysis[str(i+1)] = "Parameter variable, function definiton"
+		i = i+1
+	while i < len(line_info):
+		if i < len(line_info) and line_info[i] == "Store":
+			analysis[str(i+1)] = "Live, written to"
+			temp_load = -1
+			temp_store = i+1
+			i=i+1
+			#print str(i) + "store"
+			while i < len(line_info) and line_info[i] != "Store":
+				if i < len(line_info) and line_info[i] == "Load":
+					analysis[str(i+1)] = "Live, read"
+					temp_load = i+1
+					i=i+1
+					#print str(i) + "load in store"
+				if i < len(line_info) and line_info[i] == "Not Present":
+					analysis[str(i+1)] = "Live"
+					i=i+1
+					#print str(i) + "nil in store"
+			if temp_load != -1 and temp_load > temp_store:
+				for index in range(temp_load, i):
+					analysis[str(index+1)] = "Not Live"
+			if temp_load < temp_store:
+				for index in range(temp_store, i):
+					analysis[str(index+1)] = "Not Live"
+		if i < len(line_info) and line_info[i] == "Not Present":
+			analysis[str(i+1)] = "Not Live"
+			i=i+1
+			#print str(i) + "Nil"
+		if i < len(line_info) and line_info[i] == "Load":
+			analysis[str(i+1)] = "Live, read"
+			temp_load = i+1
+			i=i+1
+			#print str(i) + "load"
+			while i < len(line_info) and line_info[i] != "Store":
+				if i < len(line_info) and line_info[i] == "Load":
+					analysis[str(i+1)] = "Live, read"
+					temp_load = i+1
+					i=i+1
+					#print str(i) + "load in load"
+				if i < len(line_info) and line_info[i] == "Not Present":
+					analysis[str(i+1)] = "Live"
+					i=i+1
+					#print str(i) + "nil in load"
+			if temp_load != -1 and temp_load < i:
+				for index in range(temp_load, i):
+					analysis[str(index+1)] = "Not Live"
 	print "\nAnalysis For " + key #+ " " + str(analysis) + "\n\n"
 	for x in range(1, num_lines+1):
 		print "At Line: " + str(x) + " - " + str(analysis[str(x)])
