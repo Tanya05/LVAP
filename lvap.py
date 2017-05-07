@@ -14,6 +14,8 @@ var_info = {}
 #List 1: Variables being loaded on the lines.
 #List 2: Variables being stored on the lines
 #List 3: Variables used as params
+
+
 for node in ast.walk(tree):
     if isinstance(node, ast.Name):
         if node.id not in var_info:
@@ -24,7 +26,6 @@ for node in ast.walk(tree):
     		var_info[node.id][1].append(node.lineno)
     	if isinstance (node.ctx, ast.Param):
     		var_info[node.id][2].append(node.lineno)
-
 #implementing the algorithm for Live Variable Analysis
 for key in var_info:
 	line_info = []
